@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dope Dealer 2.0 - Ultimate Edition</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+  body {
+    margin: 0; padding: 20px;
+    background: #121212;
+    font-family: 'Montserrat', sans-serif;
+    color: #ddd;
+    display: flex;
+    justify-content: center;
+  }
+
+  .container {
+    max-width: 1080px;
+    width: 100%;
+    background: #1e1e1e;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 25px #0ff;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #0ff;
+  }
+
+  .flex-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .panel {
+    background: #292929;
+    padding: 15px;
+    border-radius: 8px;
+    flex: 1 1 320px;
+    min-width: 320px;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
+  .panel h3 {
+    border-bottom: 1px solid #0ff;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    color: #0ff;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  ul li {
+    padding: 6px 0;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+  }
+
+  label {
+    display: block;
+    margin: 10px 0 5px;
+  }
+
+  select, input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 6px;
+    border-radius: 5px;
+    border: none;
+    font-size: 1rem;
+    background: #222;
+    color: #ddd;
+  }
+
+  button {
+    margin-top: 10px;
+    width: 100%;
+    background: #0ff;
+    border: none;
+    padding: 12px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  button:hover:not(:disabled) {
+    background: #00cfcf;
+  }
+
+  button:disabled {
+    background: #055;
+    cursor: not-allowed;
+  }
+
+  .money, .reputation, .debt, .heat-meter, .city {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #0ff;
+    text-align: center;
+  }
+
+  .alert {
+    background: #222;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    min-height: 60px;
+    text-align: center;
+    overflow-y: auto;
+    max-height: 100px;
+  }
+
+  .heat-bar {
+    background: #444;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 5px;
+  }
+
+  .heat-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4d4d, #ff9900);
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+
+  .chart-container {
+    margin-top: 15px;
+  }
+
+  canvas {
+    background: #111;
+    border-radius: 10px;
+    max-width: 100%;
+  }
+
+  .small-info {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-top: 5px;
+    text-align: center;
+  }
+
+  /* Scrollbar */
+  .panel::-webkit-scrollbar {
+    width: 8px;
+  }
+  .panel::-webkit-scrollbar-thumb {
+    background: #0ff;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Dope Dealer 2.0 - Ultimate Edition</h1>
+
+  <div class="money">Money: $<span id="money">0</span></div>
+  <div class="reputation">Reputation: <span id="reputation">0</span></div>
+  <div class="debt">Debt: $<span id="debt">0</span> (Interest: <span id="interestRate">0%</span>)</div>
+  <div class="city">Current City: <span id="cityName">-</span></div>
+
+  <div class="heat-meter">Heat: <span id="heatPercent">0%</span></div>
+  <div class="heat-bar"><div class="heat-bar-inner" id="heatBarInner"></div></div>
+
+  <div class="flex-row">
+    <section class="panel" id="tradePanel">
+      <h3>Trade Drugs</h3>
+      <label for="citySelect">Travel to City:</label>
+      <select id="citySelect"></select>
+      <button id="travelBtn">Travel</button>
+
+      <label for="drugBuySelect">Buy Drug:</label>
+      <select id="drugBuySelect"></select>
+      <label for="buyQualitySelect">Quality:</label>
+      <select id="buyQualitySelect"></select>
+      <label for="buyAmountInput">Amount:</label>
+      <input type="number" id="buyAmountInput" min="1" value="1" />
+      <button id="buyBtn">Buy</button>
+
+      <label for="drugSellSelect">Sell Drug:</label>
+      <select id="drugSellSelect"></select>
+      <label for="sellQualitySelect">Quality:</label>
+      <select id="sellQualitySelect"></select>
+      <label for="sellAmountInput">Amount:</label>
+      <input type="number" id="sellAmountInput" min="1" value="1" />
+      <button id="sellBtn">Sell</button>
+    </section>
+
+    <section class="panel" id="inventoryPanel">
+      <h3>Inventory</h3>
+      <ul id="inventoryList"></ul>
+      <div class="small-info">Inventory Weight: <span id="inventoryWeight">0</span> / <span id="inventoryMaxWeight">100</span></div>
+    </section>
+
+    <section class="panel" id="statsPanel">
+      <h3>Stats & Skills</h3>
+      <ul>
+        <li>Level: <span id="playerLevel">1</span></li>
+        <li>Skill Points: <span id="skillPoints">0</span></li>
+      </ul>
+      <label for="skillSelect">Upgrade Skill:</label>
+      <select id="skillSelect">
+        <option value="negotiation">Negotiation (Better prices)</option>
+        <option value="stealth">Stealth (Lower heat gain)</option>
+        <option value="cooking">Cooking (Better drug quality)</option>
+      </select>
+      <button id="upgradeSkillBtn">Upgrade Skill</button>
+
+      <h4>Weapons</h4>
+      <ul id="weaponsList"></ul>
+      <button id="buyWeaponBtn">Buy Weapon ($500)</button>
+
+      <h4>Runners</h4>
+      <ul id="runnersList"></ul>
+      <button id="hireRunnerBtn">Hire Runner ($1000)</button>
+    </section>
+  </div>
+
+  <div class="flex-row" style="margin-top:20px;">
+    <section class="panel" id="stashPanel">
+      <h3>Stash House</h3>
+      <p>Level: <span id="stashLevel">1</span></p>
+      <p>Max Capacity: <span id="stashCapacity">100</span></p>
+      <p>Upgrade Cost: $<span id="stashUpgradeCost">2000</span></p>
+      <button id="upgradeStashBtn">Upgrade Stash House</button>
+    </section>
+
+    <section class="panel" id="loansPanel">
+      <h3>Loans & Debt</h3>
+      <label for="loanAmountInput">Loan Amount:</label>
+      <input type="number" id="loanAmountInput" min="100" value="100" />
+      <button id="loanBtn">Take Loan</button>
+      <button id="repayBtn">Repay Debt</button>
+    </section>
+
+    <section class="panel" id="newsPanel">
+      <h3>News & Events</h3>
+      <div id="newsLog" style="height: 120px; overflow-y:auto; background:#222; border-radius:5px; padding:5px; font-size:0.9rem;"></div>
+    </section>
+  </div>
+
+  <div class="alert" id="alertBox">Welcome to Dope Dealer 2.0!</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(() => {
+  // Data & State
+
+  const drugs = ['weed', 'coke', 'pills'];
+  const qualities = ['Low', 'Medium', 'High'];
+  const cities = ['Springfield', 'Shelbyville', 'Ogdenville'];
+
+  let player = {
+    money: 1000,
+    reputation: 0,
+    debt: 0,
+    interestRate: 0.02,
+    heat: { Springfield: 0, Shelbyville: 0, Ogdenville: 0 },
+    city: 'Springfield',
+    inventory: {}, // drug -> quality -> amount
+    stash: { level: 1, capacity: 100 },
+    level: 1,
+    skillPoints: 0,
+    skills: { negotiation: 0, stealth: 0, cooking: 0 },
+    weapons: [],
+    runners: [],
+    inventoryWeight: 0,
+    maxInventoryWeight: 100,
+  };
+
+  // Initialize inventory structure for each drug and quality
+  for (const d of drugs) {
+    player.inventory[d] = {};
+    for (const q of qualities) {
+      player.inventory[d][q] = 0;
+    }
+  }
+
+  // Base prices per drug & quality (medium quality base)
+  const basePrices = {
+    weed: 50,
+    coke: 150,
+    pills: 120,
+  };
+  // Quality multipliers for price and risk (High quality more expensive & risky)
+  const qualityMultipliers = {
+    Low: 0.7,
+    Medium: 1.0,
+    High: 1.5,
+  };
+
+  // Inventory weights per drug per unit
+  const weightPerUnit = {
+    weed: 0.5,
+    coke: 0.3,
+    pills: 0.4,
+  };
+
+  // Suppliers with stocks per city, restock timer in ticks
+  let suppliers = {
+    Springfield: {
+      weed: { stock: 500, basePrice: basePrices.weed },
+      coke: { stock: 200, basePrice: basePrices.coke },
+      pills: { stock: 300, basePrice: basePrices.pills },
+      restockTimer: 0,
+    },
+    Shelbyville: {
+      weed: { stock: 400, basePrice: basePrices.weed },
+      coke: { stock: 300, basePrice: basePrices.coke },
+      pills: { stock: 250, basePrice: basePrices.pills },
+      restockTimer: 0,
+    },
+    Ogdenville: {
+      weed: { stock: 300, basePrice: basePrices.weed },
+      coke: { stock: 100, basePrice: basePrices.coke },
+      pills: { stock: 200, basePrice: basePrices.pills },
+      restockTimer: 0,
+    },
+  };
+
+  // Weapons with cost and heat protection factor (reduces heat gain)
+  const weaponsCatalog = [
+    { name: 'Knife', cost: 500, heatReduction: 5 },
+    { name: 'Pistol', cost: 1500, heatReduction: 15 },
+    { name: 'Rifle', cost: 5000, heatReduction: 40 },
+  ];
+
+  // Runners cost and cut %
+  const runnerCost = 1000;
+  const runnerCut = 0.15; // runners take 15% cut from sales
+
+  // UI Elements
+  const moneyEl = document.getElementById('money');
+  const reputationEl = document.getElementById('reputation');
+  const debtEl = document.getElementById('debt');
+  const interestEl = document.getElementById('interestRate');
+  const heatPercentEl = document.getElementById('heatPercent');
+  const heatBarInner = document.getElementById('heatBarInner');
+  const cityNameEl = document.getElementById('cityName');
+
+  const citySelect = document.getElementById('citySelect');
+  const travelBtn = document.getElementById('travelBtn');
+
+  const drugBuySelect = document.getElementById('drugBuySelect');
+  const buyQualitySelect = document.getElementById('buyQualitySelect');
+  const buyAmountInput = document.getElementById('buyAmountInput');
+  const buyBtn = document.getElementById('buyBtn');
+
+  const drugSellSelect = document.getElementById('drugSellSelect');
+  const sellQualitySelect = document.getElementById('sellQualitySelect');
+  const sellAmountInput = document.getElementById('sellAmountInput');
+  const sellBtn = document.getElementById('sellBtn');
+
+  const inventoryList = document.getElementById('inventoryList');
+  const inventoryWeightEl = document.getElementById('inventoryWeight');
+  const inventoryMaxWeightEl = document.getElementById('inventoryMaxWeight');
+
+  const reputationDisplay = reputationEl;
+  const playerLevelEl = document.getElementById('playerLevel');
+  const skillPointsEl = document.getElementById('skillPoints');
+  const skillSelect = document.getElementById('skillSelect');
+  const upgradeSkillBtn = document.getElementById('upgradeSkillBtn');
+
+  const weaponsList = document.getElementById('weaponsList');
+  const buyWeaponBtn = document.getElementById('buyWeaponBtn');
+
+  const runnersList = document.getElementById('runnersList');
+  const hireRunnerBtn = document.getElementById('hireRunnerBtn');
+
+  const stashLevelEl = document.getElementById('stashLevel');
+  const stashCapacityEl = document.getElementById('stashCapacity');
+  const stashUpgradeCostEl = document.getElementById('stashUpgradeCost');
+  const upgradeStashBtn = document.getElementById('upgradeStashBtn');
+
+  const loanAmountInput = document.getElementById('loanAmountInput');
+  const loanBtn = document.getElementById('loanBtn');
+  const repayBtn = document.getElementById('repayBtn');
+
+  const newsLog = document.getElementById('newsLog');
+  const alertBox = document.getElementById('alertBox');
+
+  // Market events, news buffer
+  let newsMessages = [];
+
+  // Utility Functions
+  function addNews(message) {
+    const timestamp = new Date().toLocaleTimeString();
+    newsMessages.push(`[${timestamp}] ${message}`);
+    if(newsMessages.length > 10) newsMessages.shift();
+    newsLog.textContent = newsMessages.join('\n');
+  }
+
+  function showAlert(msg) {
+    alertBox.textContent = msg;
+  }
+
+  // Price calculation with negotiation skill
+  function getPrice(drug, quality, isBuying = true) {
+    let base = suppliers[player.city][drug].basePrice;
+    let qualityMultiplier = qualityMultipliers[quality];
+    let price = base * qualityMultiplier;
+
+    // Adjust price by supply stock (scarcity raises price)
+    let stock = suppliers[player.city][drug].stock;
+    if(stock < 50) price *= 1.5;
+    else if(stock < 150) price *= 1.2;
+
+    // Negotiation skill reduces buy price, increases sell price
+    if(isBuying) {
+      price *= (1 - player.skills.negotiation * 0.03);
+    } else {
+      price *= (1 + player.skills.negotiation * 0.04);
+    }
+
+    return Math.max(1, Math.round(price));
+  }
+
+  // Update inventory weight
+  function updateInventoryWeight() {
+    let weight = 0;
+    for(const d of drugs) {
+      for(const q of qualities) {
+        weight += player.inventory[d][q] * weightPerUnit[d];
+      }
+    }
+    player.inventoryWeight = weight;
+    inventoryWeightEl.textContent = weight.toFixed(1);
+  }
+
+  // Update UI lists
+  function updateInventoryUI() {
+    inventoryList.innerHTML = '';
+    for(const d of drugs) {
+      for(const q of qualities) {
+        let amt = player.inventory[d][q];
+        if(amt > 0) {
+          let li = document.createElement('li');
+          li.textContent = `${q} ${d}: ${amt}`;
+          inventoryList.appendChild(li);
+        }
+      }
+    }
+  }
+
+  function updateWeaponsUI() {
+    weaponsList.innerHTML = '';
+    if(player.weapons.length === 0) {
+      weaponsList.textContent = 'No weapons owned';
+      return;
+    }
+    for(let w of player.weapons) {
+      let li = document.createElement('li');
+      li.textContent = `${w.name} (Heat Reduction: ${w.heatReduction})`;
+      weaponsList.appendChild(li);
+    }
+  }
+
+  function updateRunnersUI() {
+    runnersList.innerHTML = '';
+    if(player.runners.length === 0) {
+      runnersList.textContent = 'No runners hired';
+      return;
+    }
+    for(let r of player.runners) {
+      let li = document.createElement('li');
+      li.textContent = `Runner (Cut: ${(runnerCut*100).toFixed(0)}%)`;
+      runnersList.appendChild(li);
+    }
+  }
+
+  function updateSkillsUI() {
+    playerLevelEl.textContent = player.level;
+    skillPointsEl.textContent = player.skillPoints;
+  }
+
+  function updateStashUI() {
+    stashLevelEl.textContent = player.stash.level;
+    stashCapacityEl.textContent = player.stash.capacity;
+    stashUpgradeCostEl.textContent = player.stash.level * 2000;
+  }
+
+  function updateDebtUI() {
+    debtEl.textContent = player.debt.toFixed(2);
+    interestEl.textContent = (player.interestRate * 100).toFixed(2) + '%';
+  }
+
+  function updateCityUI() {
+    cityNameEl.textContent = player.city;
+  }
+
+  // Update heat bar UI
+  function updateHeatUI() {
+    let heat = player.heat[player.city];
+    let percent = Math.min(heat, 100);
+    heatPercentEl.textContent = `${percent.toFixed(0)}%`;
+    heatBarInner.style.width = percent + '%';
+  }
+
+  // Populate selects
+  function populateSelectOptions() {
+    // City select
+    citySelect.innerHTML = '';
+    for(let c of cities) {
+      let opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      if(c === player.city) opt.selected = true;
+      citySelect.appendChild(opt);
+    }
+
+    // Drug buy/sell select
+    for(let sel of [drugBuySelect, drugSellSelect]) {
+      sel.innerHTML = '';
+      for(let d of drugs) {
+        let opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+        sel.appendChild(opt);
+      }
+    }
+
+    // Quality buy/sell select
+    for(let sel of [buyQualitySelect, sellQualitySelect]) {
+      sel.innerHTML = '';
+      for(let q of qualities) {
+        let opt = document.createElement('option');
+        opt.value = q;
+        opt.textContent = q;
+        sel.appendChild(opt);
+      }
+    }
+  }
+
+  // Travel cities (with heat cooldown)
+  function travelToCity(newCity) {
+    if(newCity === player.city) {
+      showAlert(`You are already in ${newCity}.`);
+      return;
+    }
+    // Travel cost based on distance (simplified as fixed)
+    const travelCost = 200;
+    if(player.money < travelCost) {
+      showAlert("Not enough money to travel ($200).");
+      return;
+    }
+    player.money -= travelCost;
+    player.city = newCity;
+    // Heat cooldown on other cities except current city
+    for(let c of cities) {
+      if(c !== newCity && player.heat[c] > 0) {
+        player.heat[c] = Math.max(0, player.heat[c] - 10);
+      }
+    }
+    addNews(`Traveled to ${newCity} (-$${travelCost})`);
+    updateAllUI();
+  }
+
+  // Buy drugs
+  function buyDrug(drug, quality, amount) {
+    amount = Math.floor(amount);
+    if(amount < 1) {
+      showAlert("Invalid amount.");
+      return;
+    }
+    const priceEach = getPrice(drug, quality, true);
+    const totalCost = priceEach * amount;
+    if(totalCost > player.money) {
+      showAlert(`Not enough money to buy ${amount} ${quality} ${drug} (Cost: $${totalCost}).`);
+      return;
+    }
+    // Check supplier stock
+    if(suppliers[player.city][drug].stock < amount) {
+      showAlert(`Supplier does not have enough stock.`);
+      return;
+    }
+    // Check inventory weight
+    const weight = amount * weightPerUnit[drug];
+    if(player.inventoryWeight + weight > player.maxInventoryWeight) {
+      showAlert(`You cannot carry that much. Inventory limit reached.`);
+      return;
+    }
+    // Purchase success
+    player.money -= totalCost;
+    suppliers[player.city][drug].stock -= amount;
+    player.inventory[drug][quality] += amount;
+    updateInventoryWeight();
+    showAlert(`Bought ${amount} ${quality} ${drug} for $${totalCost}.`);
+    addNews(`Bought ${amount} ${quality} ${drug} in ${player.city}.`);
+
+    // Increase heat due to buying illegal goods
+    let heatGain = amount * 0.3;
+    heatGain *= (1 - player.skills.stealth * 0.05);
+    heatGain -= player.weapons.reduce((acc, w) => acc + w.heatReduction, 0);
+    heatGain = Math.max(0, heatGain);
+    player.heat[player.city] += heatGain;
+
+    updateAllUI();
+  }
+
+  // Sell drugs
+  function sellDrug(drug, quality, amount) {
+    amount = Math.floor(amount);
+    if(amount < 1) {
+      showAlert("Invalid amount.");
+      return;
+    }
+    if(player.inventory[drug][quality] < amount) {
+      showAlert(`You don't have that much ${quality} ${drug} to sell.`);
+      return;
+    }
+    const priceEach = getPrice(drug, quality, false);
+    let revenue = priceEach * amount;
+
+    // Runners cut (if runners hired)
+    if(player.runners.length > 0) {
+      let runnerFee = revenue * runnerCut * player.runners.length;
+      revenue -= runnerFee;
+      addNews(`Runners took $${runnerFee.toFixed(2)} cut.`);
+    }
+
+    player.money += revenue;
+    player.inventory[drug][quality] -= amount;
+    updateInventoryWeight();
+    showAlert(`Sold ${amount} ${quality} ${drug} for $${revenue.toFixed(2)}.`);
+    addNews(`Sold ${amount} ${quality} ${drug} in ${player.city}.`);
+
+    // Selling also increases heat but less than buying
+    let heatGain = amount * 0.15;
+    heatGain *= (1 - player.skills.stealth * 0.05);
+    heatGain -= player.weapons.reduce((acc, w) => acc + w.heatReduction, 0);
+    heatGain = Math.max(0, heatGain);
+    player.heat[player.city] += heatGain;
+
+    updateAllUI();
+  }
+
+  // Upgrade stash house
+  function upgradeStash() {
+    const cost = player.stash.level * 2000;
+    if(player.money < cost) {
+      showAlert(`Not enough money to upgrade stash ($${cost}).`);
+      return;
+    }
+    player.money -= cost;
+    player.stash.level++;
+    player.stash.capacity += 50;
+    addNews(`Upgraded stash house to level ${player.stash.level}.`);
+    updateAllUI();
+  }
+
+  // Buy weapon
+  function buyWeapon() {
+    // Buy first weapon not owned
+    for(let w of weaponsCatalog) {
+      if(!player.weapons.some(owned => owned.name === w.name)) {
+        if(player.money < w.cost) {
+          showAlert(`Not enough money to buy ${w.name} ($${w.cost}).`);
+          return;
+        }
+        player.money -= w.cost;
+        player.weapons.push(w);
+        addNews(`Bought weapon: ${w.name}.`);
+        updateAllUI();
+        return;
+      }
+    }
+    showAlert("You already own all weapons.");
+  }
+
+  // Hire runner
+  function hireRunner() {
+    if(player.money < runnerCost) {
+      showAlert(`Not enough money to hire runner ($${runnerCost}).`);
+      return;
+    }
+    player.money -= runnerCost;
+    player.runners.push({ cut: runnerCut });
+    addNews(`Hired a runner.`);
+    updateAllUI();
+  }
+
+  // Loan & debt handling
+  function takeLoan(amount) {
+    amount = Math.floor(amount);
+    if(amount < 100) {
+      showAlert("Loan amount must be at least $100.");
+      return;
+    }
+    player.money += amount;
+    player.debt += amount;
+    showAlert(`Took a loan of $${amount}.`);
+    addNews(`Loan taken: $${amount}.`);
+    updateAllUI();
+  }
+
+  function repayDebt() {
+    if(player.debt <= 0) {
+      showAlert("You have no debt to repay.");
+      return;
+    }
+    if(player.money <= 0) {
+      showAlert("You have no money to repay debt.");
+      return;
+    }
+    const repayAmount = Math.min(player.money, player.debt);
+    player.money -= repayAmount;
+    player.debt -= repayAmount;
+    showAlert(`Repaid $${repayAmount.toFixed(2)} of debt.`);
+    addNews(`Repaid debt: $${repayAmount.toFixed(2)}.`);
+    updateAllUI();
+  }
+
+  // Level up check (simple)
+  function checkLevelUp() {
+    // Level up at reputation thresholds (every 100 rep)
+    if(player.reputation >= player.level * 100) {
+      player.level++;
+      player.skillPoints += 2;
+      addNews(`Leveled up to ${player.level}. Skill points awarded: 2.`);
+      showAlert(`You leveled up!`);
+    }
+  }
+
+  // Periodic updates: interest on debt, supplier restock
+  function gameTick() {
+    // Interest accumulation
+    if(player.debt > 0) {
+      player.debt += player.debt * player.interestRate;
+      player.debt = Math.min(player.debt, 100000); // Cap debt
+    }
+
+    // Supplier restock every 10 ticks (simple)
+    for(let c of cities) {
+      let sup = suppliers[c];
+      sup.restockTimer++;
+      if(sup.restockTimer >= 10) {
+        sup.restockTimer = 0;
+        for(let d of drugs) {
+          sup[d].stock += 50;
+          if(sup[d].stock > 500) sup[d].stock = 500;
+        }
+      }
+    }
+
+    // Reduce heat over time (cooldown)
+    for(let c of cities) {
+      if(player.heat[c] > 0) {
+        player.heat[c] = Math.max(0, player.heat[c] - 1);
+      }
+    }
+
+    checkLevelUp();
+    updateAllUI();
+  }
+
+  // Update all UI elements
+  function updateAllUI() {
+    moneyEl.textContent = player.money.toFixed(2);
+    reputationEl.textContent = player.reputation.toFixed(0);
+    updateDebtUI();
+    updateHeatUI();
+    updateCityUI();
+    updateInventoryUI();
+    updateInventoryWeight();
+    updateSkillsUI();
+    updateWeaponsUI();
+    updateRunnersUI();
+    updateStashUI();
+  }
+
+  // Event Listeners
+
+  travelBtn.addEventListener('click', () => {
+    travelToCity(citySelect.value);
+  });
+
+  buyBtn.addEventListener('click', () => {
+    buyDrug(drugBuySelect.value, buyQualitySelect.value, parseInt(buyAmountInput.value));
+  });
+
+  sellBtn.addEventListener('click', () => {
+    sellDrug(drugSellSelect.value, sellQualitySelect.value, parseInt(sellAmountInput.value));
+  });
+
+  upgradeSkillBtn.addEventListener('click', () => {
+    if(player.skillPoints <= 0) {
+      showAlert("No skill points available.");
+      return;
+    }
+    const skill = skillSelect.value;
+    player.skills[skill]++;
+    player.skillPoints--;
+    addNews(`Upgraded skill: ${skill}. Level: ${player.skills[skill]}.`);
+    showAlert(`Upgraded skill: ${skill}.`);
+    updateAllUI();
+  });
+
+  buyWeaponBtn.addEventListener('click', buyWeapon);
+  hireRunnerBtn.addEventListener('click', hireRunner);
+
+  upgradeStashBtn.addEventListener('click', upgradeStash);
+
+  loanBtn.addEventListener('click', () => {
+    takeLoan(parseInt(loanAmountInput.value));
+  });
+
+  repayBtn.addEventListener('click', repayDebt);
+
+  // Initialization
+  populateSelectOptions();
+  updateAllUI();
+  addNews("Welcome to Dope Dealer 2.0!");
+
+  // Game loop tick every 3 seconds
+  setInterval(gameTick, 3000);
+
+})();
+</script>
+</body>
+</html>
