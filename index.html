@@ -3,837 +3,411 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Dope Dealer 2.0 - Ultimate Edition</title>
+<title>Dope Dynasty</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
-
   body {
-    margin: 0; padding: 20px;
+    font-family: Arial, sans-serif;
     background: #121212;
-    font-family: 'Montserrat', sans-serif;
-    color: #ddd;
-    display: flex;
-    justify-content: center;
-  }
-
-  .container {
-    max-width: 1080px;
-    width: 100%;
-    background: #1e1e1e;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 0 25px #0ff;
-  }
-
-  h1 {
-    text-align: center;
-    margin-bottom: 1rem;
-    color: #0ff;
-  }
-
-  .flex-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
-
-  .panel {
-    background: #292929;
-    padding: 15px;
-    border-radius: 8px;
-    flex: 1 1 320px;
-    min-width: 320px;
-    max-height: 420px;
-    overflow-y: auto;
-  }
-
-  .panel h3 {
-    border-bottom: 1px solid #0ff;
-    padding-bottom: 8px;
-    margin-bottom: 10px;
-    color: #0ff;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-
-  ul li {
-    padding: 6px 0;
-    border-bottom: 1px solid #444;
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.95rem;
-  }
-
-  label {
-    display: block;
-    margin: 10px 0 5px;
-  }
-
-  select, input[type="number"], input[type="text"] {
-    width: 100%;
-    padding: 6px;
-    border-radius: 5px;
-    border: none;
-    font-size: 1rem;
-    background: #222;
-    color: #ddd;
-  }
-
-  button {
-    margin-top: 10px;
-    width: 100%;
-    background: #0ff;
-    border: none;
-    padding: 12px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-
-  button:hover:not(:disabled) {
-    background: #00cfcf;
-  }
-
-  button:disabled {
-    background: #055;
-    cursor: not-allowed;
-  }
-
-  .money, .reputation, .debt, .heat-meter, .city {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: #0ff;
-    text-align: center;
-  }
-
-  .alert {
-    background: #222;
+    color: #eee;
+    max-width: 600px;
+    margin: 20px auto;
     padding: 10px;
-    margin-top: 15px;
-    border-radius: 5px;
-    font-size: 1rem;
-    min-height: 60px;
-    text-align: center;
-    overflow-y: auto;
-    max-height: 100px;
   }
-
-  .heat-bar {
-    background: #444;
-    height: 20px;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-top: 5px;
-  }
-
-  .heat-bar-inner {
-    height: 100%;
-    background: linear-gradient(90deg, #ff4d4d, #ff9900);
-    width: 0%;
-    transition: width 0.5s ease;
-  }
-
-  .chart-container {
-    margin-top: 15px;
-  }
-
-  canvas {
-    background: #111;
-    border-radius: 10px;
-    max-width: 100%;
-  }
-
-  .small-info {
-    font-size: 0.85rem;
-    color: #aaa;
-    margin-top: 5px;
-    text-align: center;
-  }
-
-  /* Scrollbar */
-  .panel::-webkit-scrollbar {
-    width: 8px;
-  }
-  .panel::-webkit-scrollbar-thumb {
-    background: #0ff;
+  h1, h2 { text-align: center; }
+  button {
+    margin: 5px;
+    padding: 8px 12px;
+    background: #333;
+    color: #eee;
+    border: none;
+    cursor: pointer;
     border-radius: 4px;
   }
+  button:hover { background: #555; }
+  #log {
+    background: #222;
+    padding: 10px;
+    height: 150px;
+    overflow-y: auto;
+    border-radius: 6px;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.3;
+  }
+  #market, #actions, #quests, #status {
+    margin-top: 15px;
+    background: #1e1e1e;
+    padding: 12px;
+    border-radius: 6px;
+  }
+  .price-up { color: #4caf50; }
+  .price-down { color: #f44336; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>Dope Dealer 2.0 - Ultimate Edition</h1>
 
-  <div class="money">Money: $<span id="money">0</span></div>
-  <div class="reputation">Reputation: <span id="reputation">0</span></div>
-  <div class="debt">Debt: $<span id="debt">0</span> (Interest: <span id="interestRate">0%</span>)</div>
-  <div class="city">Current City: <span id="cityName">-</span></div>
+<h1>Dope Dynasty</h1>
+<div id="clock"></div>
+<div id="dayPhase"></div>
 
-  <div class="heat-meter">Heat: <span id="heatPercent">0%</span></div>
-  <div class="heat-bar"><div class="heat-bar-inner" id="heatBarInner"></div></div>
-
-  <div class="flex-row">
-    <section class="panel" id="tradePanel">
-      <h3>Trade Drugs</h3>
-      <label for="citySelect">Travel to City:</label>
-      <select id="citySelect"></select>
-      <button id="travelBtn">Travel</button>
-
-      <label for="drugBuySelect">Buy Drug:</label>
-      <select id="drugBuySelect"></select>
-      <label for="buyQualitySelect">Quality:</label>
-      <select id="buyQualitySelect"></select>
-      <label for="buyAmountInput">Amount:</label>
-      <input type="number" id="buyAmountInput" min="1" value="1" />
-      <button id="buyBtn">Buy</button>
-
-      <label for="drugSellSelect">Sell Drug:</label>
-      <select id="drugSellSelect"></select>
-      <label for="sellQualitySelect">Quality:</label>
-      <select id="sellQualitySelect"></select>
-      <label for="sellAmountInput">Amount:</label>
-      <input type="number" id="sellAmountInput" min="1" value="1" />
-      <button id="sellBtn">Sell</button>
-    </section>
-
-    <section class="panel" id="inventoryPanel">
-      <h3>Inventory</h3>
-      <ul id="inventoryList"></ul>
-      <div class="small-info">Inventory Weight: <span id="inventoryWeight">0</span> / <span id="inventoryMaxWeight">100</span></div>
-    </section>
-
-    <section class="panel" id="statsPanel">
-      <h3>Stats & Skills</h3>
-      <ul>
-        <li>Level: <span id="playerLevel">1</span></li>
-        <li>Skill Points: <span id="skillPoints">0</span></li>
-      </ul>
-      <label for="skillSelect">Upgrade Skill:</label>
-      <select id="skillSelect">
-        <option value="negotiation">Negotiation (Better prices)</option>
-        <option value="stealth">Stealth (Lower heat gain)</option>
-        <option value="cooking">Cooking (Better drug quality)</option>
-      </select>
-      <button id="upgradeSkillBtn">Upgrade Skill</button>
-
-      <h4>Weapons</h4>
-      <ul id="weaponsList"></ul>
-      <button id="buyWeaponBtn">Buy Weapon ($500)</button>
-
-      <h4>Runners</h4>
-      <ul id="runnersList"></ul>
-      <button id="hireRunnerBtn">Hire Runner ($1000)</button>
-    </section>
-  </div>
-
-  <div class="flex-row" style="margin-top:20px;">
-    <section class="panel" id="stashPanel">
-      <h3>Stash House</h3>
-      <p>Level: <span id="stashLevel">1</span></p>
-      <p>Max Capacity: <span id="stashCapacity">100</span></p>
-      <p>Upgrade Cost: $<span id="stashUpgradeCost">2000</span></p>
-      <button id="upgradeStashBtn">Upgrade Stash House</button>
-    </section>
-
-    <section class="panel" id="loansPanel">
-      <h3>Loans & Debt</h3>
-      <label for="loanAmountInput">Loan Amount:</label>
-      <input type="number" id="loanAmountInput" min="100" value="100" />
-      <button id="loanBtn">Take Loan</button>
-      <button id="repayBtn">Repay Debt</button>
-    </section>
-
-    <section class="panel" id="newsPanel">
-      <h3>News & Events</h3>
-      <div id="newsLog" style="height: 120px; overflow-y:auto; background:#222; border-radius:5px; padding:5px; font-size:0.9rem;"></div>
-    </section>
-  </div>
-
-  <div class="alert" id="alertBox">Welcome to Dope Dealer 2.0!</div>
-
+<div id="tutorial" style="background:#2a2a2a; padding:10px; border-radius:6px; margin-bottom:10px;">
+  <h2>Tutorial</h2>
+  <div id="tutorialText"></div>
+  <button id="tutorialNextBtn">Next</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div id="status">
+  <h2>Status</h2>
+  <div>Money: $<span id="money">0</span></div>
+  <div>Heat Level: <span id="heat">0</span> (Higher heat = higher raid chance)</div>
+  <div>Inventory:</div>
+  <ul>
+    <li>Weed: <span id="invWeed">0</span></li>
+    <li>Coke: <span id="invCoke">0</span></li>
+    <li>Pills: <span id="invPills">0</span></li>
+  </ul>
+</div>
+
+<div id="market">
+  <h2>Market</h2>
+  <div>
+    <strong>Prices (per unit):</strong>
+    <ul>
+      <li>Weed: $<span id="priceWeed">0</span></li>
+      <li>Coke: $<span id="priceCoke">0</span></li>
+      <li>Pills: $<span id="pricePills">0</span></li>
+    </ul>
+  </div>
+  <div>
+    <button onclick="buy('weed')">Buy Weed</button>
+    <button onclick="buy('coke')">Buy Coke</button>
+    <button onclick="buy('pills')">Buy Pills</button>
+  </div>
+</div>
+
+<div id="actions">
+  <h2>Actions</h2>
+  <button onclick="sell('weed')">Sell Weed</button>
+  <button onclick="sell('coke')">Sell Coke</button>
+  <button onclick="sell('pills')">Sell Pills</button>
+  <button onclick="waitTurn()">Wait</button>
+  <button onclick="saveGame()">Save Game</button>
+  <button onclick="loadGame()">Load Game</button>
+</div>
+
+<div id="quests">
+  <h2>Quests</h2>
+  <div id="questText">No quests yet.</div>
+</div>
+
+<div id="log"></div>
+
 <script>
 (() => {
-  // Data & State
+  const LOG_LIMIT = 100;
+  const MARKET_BASE_PRICES = { weed: 50, coke: 150, pills: 100 };
 
-  const drugs = ['weed', 'coke', 'pills'];
-  const qualities = ['Low', 'Medium', 'High'];
-  const cities = ['Springfield', 'Shelbyville', 'Ogdenville'];
-
-  let player = {
-    money: 1000,
-    reputation: 0,
-    debt: 0,
-    interestRate: 0.02,
-    heat: { Springfield: 0, Shelbyville: 0, Ogdenville: 0 },
-    city: 'Springfield',
-    inventory: {}, // drug -> quality -> amount
-    stash: { level: 1, capacity: 100 },
-    level: 1,
-    skillPoints: 0,
-    skills: { negotiation: 0, stealth: 0, cooking: 0 },
-    weapons: [],
-    runners: [],
-    inventoryWeight: 0,
-    maxInventoryWeight: 100,
+  // Game state
+  let state = {
+    money: 500,
+    heat: 0,
+    inventory: { weed: 0, coke: 0, pills: 0 },
+    prices: { weed: 0, coke: 0, pills: 0 },
+    dayMinutes: 7 * 60, // start at 7:00am
+    quests: [],
+    tutorialStep: 0,
+    inTutorial: true,
   };
 
-  // Initialize inventory structure for each drug and quality
-  for (const d of drugs) {
-    player.inventory[d] = {};
-    for (const q of qualities) {
-      player.inventory[d][q] = 0;
-    }
-  }
-
-  // Base prices per drug & quality (medium quality base)
-  const basePrices = {
-    weed: 50,
-    coke: 150,
-    pills: 120,
-  };
-  // Quality multipliers for price and risk (High quality more expensive & risky)
-  const qualityMultipliers = {
-    Low: 0.7,
-    Medium: 1.0,
-    High: 1.5,
-  };
-
-  // Inventory weights per drug per unit
-  const weightPerUnit = {
-    weed: 0.5,
-    coke: 0.3,
-    pills: 0.4,
-  };
-
-  // Suppliers with stocks per city, restock timer in ticks
-  let suppliers = {
-    Springfield: {
-      weed: { stock: 500, basePrice: basePrices.weed },
-      coke: { stock: 200, basePrice: basePrices.coke },
-      pills: { stock: 300, basePrice: basePrices.pills },
-      restockTimer: 0,
-    },
-    Shelbyville: {
-      weed: { stock: 400, basePrice: basePrices.weed },
-      coke: { stock: 300, basePrice: basePrices.coke },
-      pills: { stock: 250, basePrice: basePrices.pills },
-      restockTimer: 0,
-    },
-    Ogdenville: {
-      weed: { stock: 300, basePrice: basePrices.weed },
-      coke: { stock: 100, basePrice: basePrices.coke },
-      pills: { stock: 200, basePrice: basePrices.pills },
-      restockTimer: 0,
-    },
-  };
-
-  // Weapons with cost and heat protection factor (reduces heat gain)
-  const weaponsCatalog = [
-    { name: 'Knife', cost: 500, heatReduction: 5 },
-    { name: 'Pistol', cost: 1500, heatReduction: 15 },
-    { name: 'Rifle', cost: 5000, heatReduction: 40 },
+  // Day phases with ranges (minutes in day)
+  const dayPhases = [
+    {name:"Sunrise", start: 6*60, end: 7*60},
+    {name:"Morning", start: 7*60, end: 12*60},
+    {name:"Noon", start: 12*60, end: 17*60},
+    {name:"Evening", start: 17*60, end: 19*60},
+    {name:"Sundown", start: 19*60, end: 20*60},
+    {name:"Night", start: 20*60, end: 6*60 + 24*60} // wrap around midnight
   ];
 
-  // Runners cost and cut %
-  const runnerCost = 1000;
-  const runnerCut = 0.15; // runners take 15% cut from sales
+  // Quests for tutorial and main game
+  const tutorialTexts = [
+    "Welcome to Dope Dynasty! You start with $500. Buy some drugs to get going.",
+    "Try buying some Weed from the supplier by clicking 'Buy Weed'.",
+    "Great! Now try selling Weed using 'Sell Weed'.",
+    "Be careful, each action can increase your heat. If heat gets too high, police might raid you!",
+    "You can also wait to reduce heat or pass time by clicking 'Wait'.",
+    "That's it for the tutorial. Good luck, dealer!",
+  ];
 
-  // UI Elements
-  const moneyEl = document.getElementById('money');
-  const reputationEl = document.getElementById('reputation');
-  const debtEl = document.getElementById('debt');
-  const interestEl = document.getElementById('interestRate');
-  const heatPercentEl = document.getElementById('heatPercent');
-  const heatBarInner = document.getElementById('heatBarInner');
-  const cityNameEl = document.getElementById('cityName');
+  const questsList = [
+    {id:1, text:"Make your first $100 profit.", condition: (s) => s.money >= 600},
+    {id:2, text:"Own at least 10 units of any drug.", condition: (s) => Object.values(s.inventory).some(q => q >= 10)},
+    {id:3, text:"Survive 5 raids.", condition: (s) => s.raidSurvived >= 5},
+  ];
 
-  const citySelect = document.getElementById('citySelect');
-  const travelBtn = document.getElementById('travelBtn');
-
-  const drugBuySelect = document.getElementById('drugBuySelect');
-  const buyQualitySelect = document.getElementById('buyQualitySelect');
-  const buyAmountInput = document.getElementById('buyAmountInput');
-  const buyBtn = document.getElementById('buyBtn');
-
-  const drugSellSelect = document.getElementById('drugSellSelect');
-  const sellQualitySelect = document.getElementById('sellQualitySelect');
-  const sellAmountInput = document.getElementById('sellAmountInput');
-  const sellBtn = document.getElementById('sellBtn');
-
-  const inventoryList = document.getElementById('inventoryList');
-  const inventoryWeightEl = document.getElementById('inventoryWeight');
-  const inventoryMaxWeightEl = document.getElementById('inventoryMaxWeight');
-
-  const reputationDisplay = reputationEl;
-  const playerLevelEl = document.getElementById('playerLevel');
-  const skillPointsEl = document.getElementById('skillPoints');
-  const skillSelect = document.getElementById('skillSelect');
-  const upgradeSkillBtn = document.getElementById('upgradeSkillBtn');
-
-  const weaponsList = document.getElementById('weaponsList');
-  const buyWeaponBtn = document.getElementById('buyWeaponBtn');
-
-  const runnersList = document.getElementById('runnersList');
-  const hireRunnerBtn = document.getElementById('hireRunnerBtn');
-
-  const stashLevelEl = document.getElementById('stashLevel');
-  const stashCapacityEl = document.getElementById('stashCapacity');
-  const stashUpgradeCostEl = document.getElementById('stashUpgradeCost');
-  const upgradeStashBtn = document.getElementById('upgradeStashBtn');
-
-  const loanAmountInput = document.getElementById('loanAmountInput');
-  const loanBtn = document.getElementById('loanBtn');
-  const repayBtn = document.getElementById('repayBtn');
-
-  const newsLog = document.getElementById('newsLog');
-  const alertBox = document.getElementById('alertBox');
-
-  // Market events, news buffer
-  let newsMessages = [];
-
-  // Utility Functions
-  function addNews(message) {
-    const timestamp = new Date().toLocaleTimeString();
-    newsMessages.push(`[${timestamp}] ${message}`);
-    if(newsMessages.length > 10) newsMessages.shift();
-    newsLog.textContent = newsMessages.join('\n');
+  // Log helper
+  const logDiv = document.getElementById('log');
+  function log(text) {
+    const p = document.createElement('p');
+    p.textContent = text;
+    logDiv.appendChild(p);
+    if (logDiv.children.length > LOG_LIMIT) {
+      logDiv.removeChild(logDiv.children[0]);
+    }
+    logDiv.scrollTop = logDiv.scrollHeight;
   }
 
-  function showAlert(msg) {
-    alertBox.textContent = msg;
+  // Update prices with inflation/deflation
+  function updatePrices() {
+    ['weed','coke','pills'].forEach(drug => {
+      let change = (Math.random() * 0.2) - 0.1; // -10% to +10%
+      let base = MARKET_BASE_PRICES[drug];
+      let oldPrice = state.prices[drug] || base;
+      let newPrice = Math.max(1, Math.round(oldPrice * (1 + change)));
+      state.prices[drug] = newPrice;
+      const priceSpan = document.getElementById('price'+capitalize(drug));
+      priceSpan.textContent = newPrice;
+      priceSpan.className = change > 0 ? 'price-up' : 'price-down';
+    });
   }
 
-  // Price calculation with negotiation skill
-  function getPrice(drug, quality, isBuying = true) {
-    let base = suppliers[player.city][drug].basePrice;
-    let qualityMultiplier = qualityMultipliers[quality];
-    let price = base * qualityMultiplier;
+  // Buy drug
+  function buy(drug) {
+    if (state.money < state.prices[drug]) {
+      log(`Not enough money to buy ${drug}.`);
+      return;
+    }
+    state.money -= state.prices[drug];
+    state.inventory[drug]++;
+    increaseHeat();
+    updateStatus();
+    updatePrices();
+    log(`Bought 1 unit of ${drug} for $${state.prices[drug]}.`);
+    checkRaid();
+    nextTurn();
+    checkTutorial();
+  }
 
-    // Adjust price by supply stock (scarcity raises price)
-    let stock = suppliers[player.city][drug].stock;
-    if(stock < 50) price *= 1.5;
-    else if(stock < 150) price *= 1.2;
+  // Sell drug
+  function sell(drug) {
+    if (state.inventory[drug] < 1) {
+      log(`You have no ${drug} to sell.`);
+      return;
+    }
+    state.money += state.prices[drug];
+    state.inventory[drug]--;
+    increaseHeat();
+    updateStatus();
+    updatePrices();
+    log(`Sold 1 unit of ${drug} for $${state.prices[drug]}.`);
+    checkRaid();
+    nextTurn();
+    checkTutorial();
+  }
 
-    // Negotiation skill reduces buy price, increases sell price
-    if(isBuying) {
-      price *= (1 - player.skills.negotiation * 0.03);
+  // Wait action to pass time and reduce heat a bit
+  function waitTurn() {
+    log("You wait and chill for a while...");
+    decreaseHeat();
+    updateStatus();
+    updatePrices();
+    checkRaid();
+    nextTurn();
+    checkTutorial();
+  }
+
+  // Heat management
+  function increaseHeat() {
+    state.heat = Math.min(100, state.heat + 5);
+  }
+  function decreaseHeat() {
+    state.heat = Math.max(0, state.heat - 3);
+  }
+
+  // Raid chance calculation
+  function checkRaid() {
+    // Base 20% chance plus 0.5% per heat level
+    let chance = 0.20 + (state.heat * 0.005);
+    if (Math.random() < chance) {
+      raid();
+    }
+  }
+
+  // Raid event
+  function raid() {
+    log("🚨 RAID! Police raid your operation!");
+    // Lose some inventory and money, and increase heat drastically
+    const lostWeed = Math.min(state.inventory.weed, Math.floor(Math.random() * 3));
+    const lostCoke = Math.min(state.inventory.coke, Math.floor(Math.random() * 2));
+    const lostPills = Math.min(state.inventory.pills, Math.floor(Math.random() * 2));
+    state.inventory.weed -= lostWeed;
+    state.inventory.coke -= lostCoke;
+    state.inventory.pills -= lostPills;
+    const moneyLost = Math.min(state.money, Math.floor(state.money * 0.3));
+    state.money -= moneyLost;
+    state.heat = Math.min(100, state.heat + 30);
+    state.raidSurvived = (state.raidSurvived || 0) + 1;
+    log(`You lost: ${lostWeed} weed, ${lostCoke} coke, ${lostPills} pills, and $${moneyLost}.`);
+  }
+
+  // Update status display
+  function updateStatus() {
+    document.getElementById('money').textContent = state.money.toFixed(2);
+    document.getElementById('heat').textContent = state.heat;
+    document.getElementById('invWeed').textContent = state.inventory.weed;
+    document.getElementById('invCoke').textContent = state.inventory.coke;
+    document.getElementById('invPills').textContent = state.inventory.pills;
+  }
+
+  // Capitalize helper
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  // Game clock and day/night cycle
+  let lastUpdate = Date.now();
+  function updateClock() {
+    const now = Date.now();
+    const elapsed = (now - lastUpdate) / 1000; // seconds
+    lastUpdate = now;
+
+    // 1 real second = 1 in-game minute
+    state.dayMinutes += elapsed;
+    if (state.dayMinutes >= 24*60) state.dayMinutes -= 24*60;
+
+    // Update clock display (24h format -> 12h am/pm)
+    let totalMins = Math.floor(state.dayMinutes);
+    let hour24 = Math.floor(totalMins / 60);
+    let min = totalMins % 60;
+
+    let ampm = hour24 >= 12 ? "PM" : "AM";
+    let hour12 = hour24 % 12;
+    if(hour12 === 0) hour12 = 12;
+    let timeStr = hour12.toString().padStart(2,'0') + ':' + min.toString().padStart(2,'0') + ' ' + ampm;
+
+    document.getElementById('clock').textContent = `Time: ${timeStr}`;
+
+    // Determine day phase
+    let phaseName = "Night";
+    for (const phase of dayPhases) {
+      // Handle wrap around for Night phase
+      if (phase.name === "Night") {
+        if (state.dayMinutes >= phase.start || state.dayMinutes < phase.end - 24*60) {
+          phaseName = phase.name;
+          break;
+        }
+      } else if (state.dayMinutes >= phase.start && state.dayMinutes < phase.end) {
+        phaseName = phase.name;
+        break;
+      }
+    }
+    document.getElementById('dayPhase').textContent = `Phase: ${phaseName}`;
+  }
+
+  // Turn progression (for quests, tutorial)
+  function nextTurn() {
+    // Example quests check
+    updateQuests();
+  }
+
+  // Quest system
+  function updateQuests() {
+    // Add quests that are not yet in player quest list
+    questsList.forEach(q => {
+      if (!state.quests.find(qq => qq.id === q.id)) {
+        state.quests.push({id:q.id, text:q.text, done:false});
+      }
+    });
+
+    // Check quest completion
+    state.quests.forEach(q => {
+      if (!q.done) {
+        const questObj = questsList.find(x => x.id === q.id);
+        if (questObj && questObj.condition(state)) {
+          q.done = true;
+          log(`🎉 Quest complete: ${q.text}`);
+        }
+      }
+    });
+
+    // Update quest display
+    const questDiv = document.getElementById('questText');
+    questDiv.innerHTML = '';
+    state.quests.forEach(q => {
+      const p = document.createElement('p');
+      p.textContent = (q.done ? '✔️ ' : '❌ ') + q.text;
+      questDiv.appendChild(p);
+    });
+  }
+
+  // Tutorial system
+  function checkTutorial() {
+    if (!state.inTutorial) return;
+    // Show tutorial text based on step
+    const tutorialDiv = document.getElementById('tutorialText');
+    tutorialDiv.textContent = tutorialTexts[state.tutorialStep];
+
+    // Hide next button if tutorial finished
+    const nextBtn = document.getElementById('tutorialNextBtn');
+    if(state.tutorialStep >= tutorialTexts.length - 1){
+      nextBtn.style.display = 'none';
+      state.inTutorial = false;
+      log("Tutorial completed. Welcome to the full game!");
+      updateQuests();
     } else {
-      price *= (1 + player.skills.negotiation * 0.04);
-    }
-
-    return Math.max(1, Math.round(price));
-  }
-
-  // Update inventory weight
-  function updateInventoryWeight() {
-    let weight = 0;
-    for(const d of drugs) {
-      for(const q of qualities) {
-        weight += player.inventory[d][q] * weightPerUnit[d];
-      }
-    }
-    player.inventoryWeight = weight;
-    inventoryWeightEl.textContent = weight.toFixed(1);
-  }
-
-  // Update UI lists
-  function updateInventoryUI() {
-    inventoryList.innerHTML = '';
-    for(const d of drugs) {
-      for(const q of qualities) {
-        let amt = player.inventory[d][q];
-        if(amt > 0) {
-          let li = document.createElement('li');
-          li.textContent = `${q} ${d}: ${amt}`;
-          inventoryList.appendChild(li);
-        }
-      }
+      nextBtn.style.display = 'inline-block';
     }
   }
 
-  function updateWeaponsUI() {
-    weaponsList.innerHTML = '';
-    if(player.weapons.length === 0) {
-      weaponsList.textContent = 'No weapons owned';
-      return;
+  document.getElementById('tutorialNextBtn').addEventListener('click', () => {
+    if(state.tutorialStep < tutorialTexts.length - 1){
+      state.tutorialStep++;
+      checkTutorial();
     }
-    for(let w of player.weapons) {
-      let li = document.createElement('li');
-      li.textContent = `${w.name} (Heat Reduction: ${w.heatReduction})`;
-      weaponsList.appendChild(li);
-    }
-  }
-
-  function updateRunnersUI() {
-    runnersList.innerHTML = '';
-    if(player.runners.length === 0) {
-      runnersList.textContent = 'No runners hired';
-      return;
-    }
-    for(let r of player.runners) {
-      let li = document.createElement('li');
-      li.textContent = `Runner (Cut: ${(runnerCut*100).toFixed(0)}%)`;
-      runnersList.appendChild(li);
-    }
-  }
-
-  function updateSkillsUI() {
-    playerLevelEl.textContent = player.level;
-    skillPointsEl.textContent = player.skillPoints;
-  }
-
-  function updateStashUI() {
-    stashLevelEl.textContent = player.stash.level;
-    stashCapacityEl.textContent = player.stash.capacity;
-    stashUpgradeCostEl.textContent = player.stash.level * 2000;
-  }
-
-  function updateDebtUI() {
-    debtEl.textContent = player.debt.toFixed(2);
-    interestEl.textContent = (player.interestRate * 100).toFixed(2) + '%';
-  }
-
-  function updateCityUI() {
-    cityNameEl.textContent = player.city;
-  }
-
-  // Update heat bar UI
-  function updateHeatUI() {
-    let heat = player.heat[player.city];
-    let percent = Math.min(heat, 100);
-    heatPercentEl.textContent = `${percent.toFixed(0)}%`;
-    heatBarInner.style.width = percent + '%';
-  }
-
-  // Populate selects
-  function populateSelectOptions() {
-    // City select
-    citySelect.innerHTML = '';
-    for(let c of cities) {
-      let opt = document.createElement('option');
-      opt.value = c;
-      opt.textContent = c;
-      if(c === player.city) opt.selected = true;
-      citySelect.appendChild(opt);
-    }
-
-    // Drug buy/sell select
-    for(let sel of [drugBuySelect, drugSellSelect]) {
-      sel.innerHTML = '';
-      for(let d of drugs) {
-        let opt = document.createElement('option');
-        opt.value = d;
-        opt.textContent = d.charAt(0).toUpperCase() + d.slice(1);
-        sel.appendChild(opt);
-      }
-    }
-
-    // Quality buy/sell select
-    for(let sel of [buyQualitySelect, sellQualitySelect]) {
-      sel.innerHTML = '';
-      for(let q of qualities) {
-        let opt = document.createElement('option');
-        opt.value = q;
-        opt.textContent = q;
-        sel.appendChild(opt);
-      }
-    }
-  }
-
-  // Travel cities (with heat cooldown)
-  function travelToCity(newCity) {
-    if(newCity === player.city) {
-      showAlert(`You are already in ${newCity}.`);
-      return;
-    }
-    // Travel cost based on distance (simplified as fixed)
-    const travelCost = 200;
-    if(player.money < travelCost) {
-      showAlert("Not enough money to travel ($200).");
-      return;
-    }
-    player.money -= travelCost;
-    player.city = newCity;
-    // Heat cooldown on other cities except current city
-    for(let c of cities) {
-      if(c !== newCity && player.heat[c] > 0) {
-        player.heat[c] = Math.max(0, player.heat[c] - 10);
-      }
-    }
-    addNews(`Traveled to ${newCity} (-$${travelCost})`);
-    updateAllUI();
-  }
-
-  // Buy drugs
-  function buyDrug(drug, quality, amount) {
-    amount = Math.floor(amount);
-    if(amount < 1) {
-      showAlert("Invalid amount.");
-      return;
-    }
-    const priceEach = getPrice(drug, quality, true);
-    const totalCost = priceEach * amount;
-    if(totalCost > player.money) {
-      showAlert(`Not enough money to buy ${amount} ${quality} ${drug} (Cost: $${totalCost}).`);
-      return;
-    }
-    // Check supplier stock
-    if(suppliers[player.city][drug].stock < amount) {
-      showAlert(`Supplier does not have enough stock.`);
-      return;
-    }
-    // Check inventory weight
-    const weight = amount * weightPerUnit[drug];
-    if(player.inventoryWeight + weight > player.maxInventoryWeight) {
-      showAlert(`You cannot carry that much. Inventory limit reached.`);
-      return;
-    }
-    // Purchase success
-    player.money -= totalCost;
-    suppliers[player.city][drug].stock -= amount;
-    player.inventory[drug][quality] += amount;
-    updateInventoryWeight();
-    showAlert(`Bought ${amount} ${quality} ${drug} for $${totalCost}.`);
-    addNews(`Bought ${amount} ${quality} ${drug} in ${player.city}.`);
-
-    // Increase heat due to buying illegal goods
-    let heatGain = amount * 0.3;
-    heatGain *= (1 - player.skills.stealth * 0.05);
-    heatGain -= player.weapons.reduce((acc, w) => acc + w.heatReduction, 0);
-    heatGain = Math.max(0, heatGain);
-    player.heat[player.city] += heatGain;
-
-    updateAllUI();
-  }
-
-  // Sell drugs
-  function sellDrug(drug, quality, amount) {
-    amount = Math.floor(amount);
-    if(amount < 1) {
-      showAlert("Invalid amount.");
-      return;
-    }
-    if(player.inventory[drug][quality] < amount) {
-      showAlert(`You don't have that much ${quality} ${drug} to sell.`);
-      return;
-    }
-    const priceEach = getPrice(drug, quality, false);
-    let revenue = priceEach * amount;
-
-    // Runners cut (if runners hired)
-    if(player.runners.length > 0) {
-      let runnerFee = revenue * runnerCut * player.runners.length;
-      revenue -= runnerFee;
-      addNews(`Runners took $${runnerFee.toFixed(2)} cut.`);
-    }
-
-    player.money += revenue;
-    player.inventory[drug][quality] -= amount;
-    updateInventoryWeight();
-    showAlert(`Sold ${amount} ${quality} ${drug} for $${revenue.toFixed(2)}.`);
-    addNews(`Sold ${amount} ${quality} ${drug} in ${player.city}.`);
-
-    // Selling also increases heat but less than buying
-    let heatGain = amount * 0.15;
-    heatGain *= (1 - player.skills.stealth * 0.05);
-    heatGain -= player.weapons.reduce((acc, w) => acc + w.heatReduction, 0);
-    heatGain = Math.max(0, heatGain);
-    player.heat[player.city] += heatGain;
-
-    updateAllUI();
-  }
-
-  // Upgrade stash house
-  function upgradeStash() {
-    const cost = player.stash.level * 2000;
-    if(player.money < cost) {
-      showAlert(`Not enough money to upgrade stash ($${cost}).`);
-      return;
-    }
-    player.money -= cost;
-    player.stash.level++;
-    player.stash.capacity += 50;
-    addNews(`Upgraded stash house to level ${player.stash.level}.`);
-    updateAllUI();
-  }
-
-  // Buy weapon
-  function buyWeapon() {
-    // Buy first weapon not owned
-    for(let w of weaponsCatalog) {
-      if(!player.weapons.some(owned => owned.name === w.name)) {
-        if(player.money < w.cost) {
-          showAlert(`Not enough money to buy ${w.name} ($${w.cost}).`);
-          return;
-        }
-        player.money -= w.cost;
-        player.weapons.push(w);
-        addNews(`Bought weapon: ${w.name}.`);
-        updateAllUI();
-        return;
-      }
-    }
-    showAlert("You already own all weapons.");
-  }
-
-  // Hire runner
-  function hireRunner() {
-    if(player.money < runnerCost) {
-      showAlert(`Not enough money to hire runner ($${runnerCost}).`);
-      return;
-    }
-    player.money -= runnerCost;
-    player.runners.push({ cut: runnerCut });
-    addNews(`Hired a runner.`);
-    updateAllUI();
-  }
-
-  // Loan & debt handling
-  function takeLoan(amount) {
-    amount = Math.floor(amount);
-    if(amount < 100) {
-      showAlert("Loan amount must be at least $100.");
-      return;
-    }
-    player.money += amount;
-    player.debt += amount;
-    showAlert(`Took a loan of $${amount}.`);
-    addNews(`Loan taken: $${amount}.`);
-    updateAllUI();
-  }
-
-  function repayDebt() {
-    if(player.debt <= 0) {
-      showAlert("You have no debt to repay.");
-      return;
-    }
-    if(player.money <= 0) {
-      showAlert("You have no money to repay debt.");
-      return;
-    }
-    const repayAmount = Math.min(player.money, player.debt);
-    player.money -= repayAmount;
-    player.debt -= repayAmount;
-    showAlert(`Repaid $${repayAmount.toFixed(2)} of debt.`);
-    addNews(`Repaid debt: $${repayAmount.toFixed(2)}.`);
-    updateAllUI();
-  }
-
-  // Level up check (simple)
-  function checkLevelUp() {
-    // Level up at reputation thresholds (every 100 rep)
-    if(player.reputation >= player.level * 100) {
-      player.level++;
-      player.skillPoints += 2;
-      addNews(`Leveled up to ${player.level}. Skill points awarded: 2.`);
-      showAlert(`You leveled up!`);
-    }
-  }
-
-  // Periodic updates: interest on debt, supplier restock
-  function gameTick() {
-    // Interest accumulation
-    if(player.debt > 0) {
-      player.debt += player.debt * player.interestRate;
-      player.debt = Math.min(player.debt, 100000); // Cap debt
-    }
-
-    // Supplier restock every 10 ticks (simple)
-    for(let c of cities) {
-      let sup = suppliers[c];
-      sup.restockTimer++;
-      if(sup.restockTimer >= 10) {
-        sup.restockTimer = 0;
-        for(let d of drugs) {
-          sup[d].stock += 50;
-          if(sup[d].stock > 500) sup[d].stock = 500;
-        }
-      }
-    }
-
-    // Reduce heat over time (cooldown)
-    for(let c of cities) {
-      if(player.heat[c] > 0) {
-        player.heat[c] = Math.max(0, player.heat[c] - 1);
-      }
-    }
-
-    checkLevelUp();
-    updateAllUI();
-  }
-
-  // Update all UI elements
-  function updateAllUI() {
-    moneyEl.textContent = player.money.toFixed(2);
-    reputationEl.textContent = player.reputation.toFixed(0);
-    updateDebtUI();
-    updateHeatUI();
-    updateCityUI();
-    updateInventoryUI();
-    updateInventoryWeight();
-    updateSkillsUI();
-    updateWeaponsUI();
-    updateRunnersUI();
-    updateStashUI();
-  }
-
-  // Event Listeners
-
-  travelBtn.addEventListener('click', () => {
-    travelToCity(citySelect.value);
   });
 
-  buyBtn.addEventListener('click', () => {
-    buyDrug(drugBuySelect.value, buyQualitySelect.value, parseInt(buyAmountInput.value));
-  });
-
-  sellBtn.addEventListener('click', () => {
-    sellDrug(drugSellSelect.value, sellQualitySelect.value, parseInt(sellAmountInput.value));
-  });
-
-  upgradeSkillBtn.addEventListener('click', () => {
-    if(player.skillPoints <= 0) {
-      showAlert("No skill points available.");
-      return;
+  // Save and load game using localStorage
+  function saveGame() {
+    localStorage.setItem('dopeDynastySave', JSON.stringify(state));
+    log('Game saved.');
+  }
+  function loadGame() {
+    const saved = localStorage.getItem('dopeDynastySave');
+    if (saved) {
+      state = JSON.parse(saved);
+      log('Game loaded.');
+      updateStatus();
+      updatePrices();
+      updateQuests();
+      checkTutorial();
+    } else {
+      log('No saved game found.');
     }
-    const skill = skillSelect.value;
-    player.skills[skill]++;
-    player.skillPoints--;
-    addNews(`Upgraded skill: ${skill}. Level: ${player.skills[skill]}.`);
-    showAlert(`Upgraded skill: ${skill}.`);
-    updateAllUI();
-  });
+  }
 
-  buyWeaponBtn.addEventListener('click', buyWeapon);
-  hireRunnerBtn.addEventListener('click', hireRunner);
+  // Initial setup
+  function init() {
+    // Load saved game if exists
+    loadGame();
+    updateStatus();
+    updatePrices();
+    checkTutorial();
+    updateQuests();
+  }
 
-  upgradeStashBtn.addEventListener('click', upgradeStash);
+  // Call updateClock every second
+  setInterval(updateClock, 1000);
 
-  loanBtn.addEventListener('click', () => {
-    takeLoan(parseInt(loanAmountInput.value));
-  });
+  // Export functions to window so buttons can access
+  window.buy = buy;
+  window.sell = sell;
+  window.waitTurn = waitTurn;
+  window.saveGame = saveGame;
+  window.loadGame = loadGame;
 
-  repayBtn.addEventListener('click', repayDebt);
-
-  // Initialization
-  populateSelectOptions();
-  updateAllUI();
-  addNews("Welcome to Dope Dealer 2.0!");
-
-  // Game loop tick every 3 seconds
-  setInterval(gameTick, 3000);
-
+  init();
 })();
 </script>
+
 </body>
 </html>
